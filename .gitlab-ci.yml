@@ -1,0 +1,18 @@
+variables:
+  CI_DEBUG_SERVICES: 'true'
+
+stages:
+  - build
+  - test
+  - deploy
+
+build-job:
+  services:
+    - 'appium/appium'
+  image:
+    name: 'alpine:3.17'
+  stage: build
+  script:
+    - echo "not empty"
+
+
