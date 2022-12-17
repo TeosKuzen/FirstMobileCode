@@ -1,0 +1,44 @@
+version: '3.9'
+services:
+  gitlab:
+    image: 'gitlab/gitlab-ce:latest'
+    restart: unless-stopped
+    hostname: 'localhost'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:8880'
+    ports:
+      - '8880:8880'
+      - '443:443'
+      - '22:22'
+#      - '5005:5005'
+    networks:
+      gitlab_net:
+        ipv4_address: 172.20.0.2
+    volumes:
+      - 'D:\DockerCompose\GITLAB\GitLab\config:/etc/gitlab'
+      - 'D:\DockerCompose\GITLAB\GitLab\logs:/var/log/gitlab'
+      - 'D:\DockerCompose\GITLAB\GitLab\data:/var/opt/gitlab'
+    shm_size: '256m'
+
+  runner1:
+    image: 'gitlab/gitlab-runner:latest'
+    restart: unless-stopped
+    depends_on:
+      - gitlab
+    container_name: 'gitlab-runner'
+    ports:
+      - '8093:8093'
+    networks:
+      gitlab_net:
+        ipv4_address: 172.20.0.3
+    volumes:
+      - 'D:\DockerCompose\GITLAB\Gitlab_Runner1/config:/etc/gitlab-runner'
+
+networks:
+  gitlab_net:
+    name: gitlab_net
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24

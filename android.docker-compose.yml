@@ -1,0 +1,87 @@
+version: '3.9'
+services:
+  selenium_hub:
+    image: selenium/hub
+    ports:
+      - '4444:4444'
+    networks:
+      mobile_net:
+        ipv4_address: 172.30.0.2
+
+  appium:
+    image: appium/appium
+    container_name: 'appium'
+    restart: unless-stopped
+    privileged: true
+    depends_on:
+      - selenium_hub
+    volumes:
+      - 'D:\DockerCompose\appium\log:/var/log/'
+    networks:
+      mobile_net:
+        ipv4_address: 172.30.0.3
+    environment:
+      CONNECT_TO_GRID: true
+      SELENIUM_HOST: 172.30.0.2
+      SELENIUM_PORT: 4444
+
+  android:
+    image: budtmo/docker-android-x86-8.1
+    privileged: true
+    container_name: 'SamsungGalaxyS10'
+    restart: unless-stopped
+    depends_on:
+      - appium
+      - selenium_hub
+    ports:
+      - '4723:4723'
+      - '6080:6080'
+    volumes:
+      - D:\IdeaProjects\appium1\src\test\resources\apk:/root/apk
+    networks:
+      mobile_net:
+        ipv4_address: 172.30.0.4
+    environment:
+      DEVICE: 'Samsung Galaxy S10'
+      APPIUM: true
+      APPIUM_HOST: 172.30.0.3
+      APPIUM_PORT: 4723
+      AUTO_RECORD: true
+      CONNECT_TO_GRID: true
+      SELENIUM_HOST: 172.30.0.2
+      MOBILE_WEB_TEST: true
+
+  allure:
+    image: "frankescobar/allure-docker-service"
+    environment:
+      CHECK_RESULTS_EVERY_SECONDS: 1
+      KEEP_HISTORY: 1
+    ports:
+      - "5050:5050"
+    networks:
+      mobile_net:
+        ipv4_address: 172.30.0.10
+    volumes:
+      - D:\IdeaProjects\appium1\build\allure-results:/app/allure-results
+
+  allure_ui:
+    image: "frankescobar/allure-docker-service-ui"
+    environment:
+      ALLURE_DOCKER_PUBLIC_API_URL: "http://localhost:5050"
+      ALLURE_DOCKER_PUBLIC_API_URL_PREFIX: ""
+    ports:
+      - "5252:5252"
+    networks:
+      mobile_net:
+        ipv4_address: 172.30.0.11
+
+networks:
+  mobile_net:
+    name: mobile_net
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/24
+
+
+
